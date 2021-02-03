@@ -1,0 +1,31 @@
+# 
+# Apache Camel Source "Hello Serverless World"
+#
+# Full documentation and other examples at: https://knative.dev/docs/eventing/samples/apache-camel-source/
+#
+apiVersion: sources.knative.dev/v1alpha1
+kind: CamelSource
+metadata:
+  name: camel-source-timer-publisher
+spec:
+  source:
+    flow:
+      from:
+        uri: timer:tick
+        parameters:
+          period: 5s
+        steps:
+          - set-header:
+              name: Content-Type
+              constant: text/plain
+          - set-body:
+              constant: Hello Event in a Serverless World!
+          - transform: 
+              simple: "${body.toUpperCase()}"
+          - log:
+              message: Sending message '${body}'
+  sink:
+    ref:
+      apiVersion: serving.knative.dev/v1alpha1
+      kind: Service
+      name: event-display
